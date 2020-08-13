@@ -2,22 +2,27 @@ import React, { Component } from 'react'
 import ProgressBar from './ProgressBar'
 
 export class Form extends Component {
-    // defining initial state
+    // defining initial state for form
     state = {
         title: '',
         price: '',
         img: null
     }
-    // continue will trigger nextStep which will increase step by 1
+
+    // defining methods
+
+    // continue method will trigger nextStep by which we will move to next screen
     continue = () => {
-        this.props.nextStep()
+        this.props.nextStep();
     }
-    // handle values
+
+    // handling input values
     handleChange = (e) => {
         this.setState({
             [e.target.name]: e.target.value
         })
     }
+
     // handle img
     handleImg = (e) => {
         if (e.target.files[0]) {
@@ -26,19 +31,21 @@ export class Form extends Component {
             })
         }
     }
+
     // handleSubmit
     handleSubmit = (e) => {
         e.preventDefault();
-        this.props.addProduct(this.state.title, this.state.price, this.state.img);
+        this.props.addProducts(this.state.title, this.state.price, this.state.img);
         this.setState({
             title: '',
             price: '',
             img: null
         })
-        document.getElementById('file').value = '';
+        document.getElementById('file').value = ''
     }
+
     render() {
-        console.log(this.props.progress);
+        // console.log(this.props.progress);
         return (
             <>
                 <div className='header text-center'>ADD PRODUCTS</div>
@@ -69,4 +76,3 @@ export class Form extends Component {
 }
 
 export default Form
-

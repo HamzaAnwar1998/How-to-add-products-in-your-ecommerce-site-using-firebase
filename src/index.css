@@ -66,6 +66,7 @@ body {
   height: auto;
   padding: 15px;
   border: 1px solid #e4e4e4;
+  opacity: 0.5;
 }
 
 .img-div img {

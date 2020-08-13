@@ -5,20 +5,21 @@ import fire from '../config/Config'
 import Modal from './Modal'
 
 export class ParentContainer extends Component {
+    // defining initial state
     state = {
-        id: '_' + Math.floor(Math.random() * 100000),
+        id: Math.floor(Math.random() * 100000),
         step: 1,
         products: [],
-        selectedImg: null,
-        progress: null
+        selectedImg: null, // this will be used in modal
+        progress: null // this will be used in progress bar
     }
-    // component did mount
+
     componentDidMount() {
         const prevState = this.state.products;
         fire.firestore().collection('products').onSnapshot(snapshot => {
             let changes = snapshot.docChanges();
             changes.forEach(change => {
-                if (change.type === "added") {
+                if (change.type === 'added') {
                     prevState.push({
                         id: change.doc.data().id,
                         title: change.doc.data().title,
@@ -26,13 +27,11 @@ export class ParentContainer extends Component {
                         img: change.doc.data().img
                     })
                 }
-                else if (change.type === "removed") {
+                else if (change.type === 'removed') {
                     for (var i = 0; i < prevState.length; i++) {
                         if (prevState[i].id === change.doc.id) {
                             prevState.splice(i, 1);
                         }
-                        // console.log(prevState[i].id);
-                        // console.log(change.doc.id);
                     }
                 }
                 this.setState({
@@ -41,52 +40,47 @@ export class ParentContainer extends Component {
             })
         })
     }
-    // function of setSelectedImg
-    setSelectedImg = (img) => {
-        // console.log(img);
-        this.setState({
-            selectedImg: img
-        })
-    }
 
-    // next step
+    // defining methods
+
+    // nextStep will move us to next screen
     nextStep = () => {
         const { step } = this.state;
         this.setState({
             step: step + 1
         })
     }
-    // previous step
+
+    // prevStep will move us to previous screen
     prevStep = () => {
         const { step } = this.state;
         this.setState({
             step: step - 1
         })
     }
-    // addProduct
-    addProduct = (title, price, img) => {
+
+    // addProducts
+    addProducts = (title, price, img) => {
+        // generating new id
         const date = new Date();
         const time = date.getTime();
         const id = '_' + time;
         this.setState({
             id: id
         })
-        // console.log(title, price, img.name);
-        // console.log(this.state.id);
-        // console.log(id);
         const storage = fire.storage();
-        const uploadtask = storage.ref(`images/${img.name}`).put(img);
-        uploadtask.on('state_changed', snapshot => {
+        const uploadTask = storage.ref(`images/${img.name}`).put(img);
+        uploadTask.on('state_changed', snapshot => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             // console.log(progress);
             this.setState({
                 progress: progress
             })
         }, error => {
-            console.log(error.message);
+            console.log(error.message)
         }, () => {
-            storage.ref("images").child(img.name).getDownloadURL().then(url => {
-                fire.firestore().collection("products").doc(this.state.id).set({
+            storage.ref('images').child(img.name).getDownloadURL().then(url => {
+                fire.firestore().collection('products').doc(this.state.id).set({
                     id: this.state.id,
                     title,
                     price,
@@ -98,40 +92,48 @@ export class ParentContainer extends Component {
             })
         })
     }
+
     // delete
     delete = (id) => {
         fire.firestore().collection('products').doc(id).delete();
         // console.log(id);
     }
+
+    // setSelectedImg function
+    setSelectedImg = (img) => {
+        // console.log(img);
+        this.setState({
+            selectedImg: img
+        })
+    }
+
     render() {
         const { step } = this.state;
         switch (step) {
             case 1:
                 return (
                     <Form nextStep={this.nextStep}
-                        addProduct={this.addProduct}
-                        progress={this.state.progress}
-                    />
+                        addProducts={this.addProducts}
+                        progress={this.state.progress} />
                 )
             case 2:
                 return (
                     <>
-                        <div className='header text-center'>YOUR PRODUCTS</div>
+                        <div className='header text-center'>Your Products</div>
                         <br />
                         <div className='container'>
                             <div className='products-box'>
-                                <Products
-                                    products={this.state.products}
+                                <Products products={this.state.products}
                                     delete={this.delete}
                                     setSelectedImg={this.setSelectedImg} />
                                 {this.state.selectedImg && <Modal selectedImg={this.state.selectedImg}
-                                    setSelectedImg={this.setSelectedImg} />}
+                                setSelectedImg={this.setSelectedImg} />}
                             </div>
                             <button className='btn btn-info btn-block' onClick={this.prevStep}>BACK</button>
                             <br />
                         </div>
                     </>
-                );
+                )
         }
     }
 }
